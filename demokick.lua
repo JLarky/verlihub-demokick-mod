@@ -9,11 +9,14 @@ _, botname = VH:GetConfig("config", "hub_security")
 function VH_OnParsedMsgChat(nick,data)
  if string.find(data, "^%.kick", 1) then
   nick2kick = data:match("^.kick (.+)$")
+  if nick2kick then nick2kick=nick2kick else nick2kick="" end
   result, sIP = VH:GetUserIP(nick2kick)
-    if result then
-    	 SendMessageToUser(string.format("ok"), nick, botname)
+    if string.len(sIP)>0 then
+    	 SendMessageToUser(string.format("ok"..sIP), nick, botname)
+	 return nil
 	else
 	 SendMessageToUser(string.format("Пользователя "..nick2kick.." нет или чё-то глючит"), nick, botname)
+	 return nil
     end
  end
  return 1
