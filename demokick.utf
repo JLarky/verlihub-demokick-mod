@@ -23,7 +23,7 @@ function VH_OnParsedMsgChat(nick,data)
 	 
 	 if not demo_kicked then demo_kicked = {} end
 	 if not demo_kicked[nick2kick] then demo_kicked[nick2kick] = {} end
-	 if diff_time<10 then 
+	 if diff_time<60 then 
     	  SendMessageToUser(string.format("Кикать слишком часто вредно :) "..diff_time), nick, botname)
 	 else
 	  demo_kickers[nick]=now
@@ -32,7 +32,7 @@ function VH_OnParsedMsgChat(nick,data)
 	  local i=0
 	  
 	  for nick, time in pairs(signes) do 
-	   if os.difftime(now, time) < 100 then
+	   if os.difftime(now, time) < 180 then -- 3*60
 	    i=i+1
 	   end
 	  end
@@ -40,6 +40,15 @@ function VH_OnParsedMsgChat(nick,data)
 	  -- здесь в i будет количество человеков которые _недавно_ хотели забанить nick2kick
 	  
 	  SendMessageToUser(string.format("убивцев: "..i), nick, botname)
+	  SendMessageToAll(string.format("За кик пользователя "..nick2kick.." проголосовал(а) "..nick..". Всего голосов: "..i.." из 5."), botname)
+	  
+	  if i >= 5 then
+	   result, iClass = VH:GetUserClass(nick2kick)
+	   if iClass <6 then
+	    VH:KickUser(botname, nick2kick, "Так решило быдло.")
+	   end
+	   demo_kicked[nick2kick]={}
+	  end
 	 end
 	 return nil
 	else
@@ -52,6 +61,11 @@ end
 
 function SendMessageToUser(data, nick, from)
 	result, err = VH:SendDataToUser("<"..from.."> "..data.."|", nick)
+	return 1
+end
+
+function SendMessageToAll(data, from)
+	result, err = VH:SendDataToAll("<"..from.."> "..data.."|", 0, 10)
 	return 1
 end
 
