@@ -5,56 +5,84 @@
 
 
 _, botname = VH:GetConfig("config", "hub_security")
+vote_delay=60
+max_votes =5
+vote_time =180
 
 function VH_OnParsedMsgChat(nick,data)
- if string.find(data, "^%.kick", 1) then
-  nick2kick = data:match("^.kick (.+)$")
-  if nick2kick then nick2kick=nick2kick else nick2kick="" end
+ if string.find(data, "^%.([un]*)kick", 1) then
+  local nick2kick = data:match("^.kick (.+)$")
+  local nick2unkick = data:match("^.unkick (.+)$")
+  if nick2kick then 
+   action=1
+  elseif nick2unkick then
+   action=-1
+   nick2kick=nick2unkick
+  else  
+   action=0
+   nick2kick=""
+  end
   result, sIP = VH:GetUserIP(nick2kick)
     if string.len(sIP)>0 then
-    	 SendMessageToUser(string.format("начинаем кикать..."), nick, botname)
+	 --SendMessageToUser(string.format("начинаем кикать..."), nick, botname)
 	 if not demo_kickers then demo_kickers = {};end
-         if not demo_kickers[nick] then demo_kickers[nick] = 0; end
+         if not demo_kickers[nick] then demo_kickers[nick] = {0, 0}; end
 	 -- теперь в demo_kickers[nick] у нас написано когда чел в последний раз кикал
 	 local now = os.time()
-	 local diff_time=os.difftime(now, demo_kickers[nick])
+	 local diff_time=os.difftime(now, demo_kickers[nick][1])
 	 -- demo_kickers[nick]=now надо делать позже
 	 -- теперь в diff_time время с прошлого кика
 	 
 	 if not demo_kicked then demo_kicked = {} end
 	 if not demo_kicked[nick2kick] then demo_kicked[nick2kick] = {} end
-	 if diff_time<60 then 
-    	  SendMessageToUser(string.format("Кикать слишком часто вредно :) "..diff_time), nick, botname)
+	 if diff_time<vote_delay then
+    	  SendMessageToUser(string.format("Кикать слишком часто вредно :) подожди "..(vote_delay-diff_time).." секунд."), nick, botname)
 	 else
-	  demo_kickers[nick]=now
+	  demo_kickers[nick]={now, action}
 	  local signes = demo_kicked[nick2kick]
-	  signes[nick]=now
+	  signes[nick]={now, action}
 	  local i=0
-	  
-	  for nick, time in pairs(signes) do 
-	   if os.difftime(now, time) < 180 then -- 3*60
-	    i=i+1
+  
+	  for nick, blabla in pairs(signes) do
+   	   if os.difftime(now, blabla[1]) < vote_time then -- 3*60
+	    i=i+blabla[2]
 	   end
 	  end
 	  
 	  -- здесь в i будет количество человеков которые _недавно_ хотели забанить nick2kick
 	  
-	  SendMessageToUser(string.format("убивцев: "..i), nick, botname)
-	  SendMessageToAll(string.format("За кик пользователя "..nick2kick.." проголосовал(а) "..nick..". Всего голосов: "..i.." из 5."), botname)
+	  --SendMessageToUser(string.format("убивцев: "..i), nick, botname)
+	  if action==1 then
+	  msg = "За кик"
+	  else
+	  msg = "Не кикать"
+	  end
+	  SendMessageToAll(string.format(msg.." пользователя "..nick2kick.." проголосовал(а) "..nick..". Всего голосов: "..i.." из "..max_votes.."."), botname)
 	  
-	  if i >= 5 then
+	  
+	  if i >= max_votes then
 	   result, iClass = VH:GetUserClass(nick2kick)
 	   if iClass <6 then
 	    VH:KickUser(botname, nick2kick, "Так решило быдло.")
 	   end
 	   demo_kicked[nick2kick]={}
 	  end
+	  demo_kicked[nick2kick]=signes
 	 end
 	 return nil
 	else
 	 SendMessageToUser(string.format("Пользователя "..nick2kick.." нет или чё-то глючит"), nick, botname)
 	 return nil
     end
+ elseif string.find(data, "^%.p", 1) then
+ local nick2protect = data:match("^.p (.+)$")
+ if not demo_kicked then demo_kicked = {} end
+ if not demo_kicked[nick2protect] then demo_kicked[nick2protect] = {} end
+  result, iClass = VH:GetUserClass(nick)
+  if iClass == 10 then
+   demo_kicked[nick2protect][nick]={os.time(), -10}
+  end
+  return nil
  end
  return 1
 end
