@@ -22,6 +22,7 @@ function VH_OnParsedMsgChat(nick,data)
    action=0
    nick2kick=""
   end
+  local nick2kick = string.lower(nick2kick)
   result, sIP = VH:GetUserIP(nick2kick)
     if string.len(sIP)>0 then
 	 --SendMessageToUser(string.format("начинаем кикать..."), nick, botname)
@@ -75,12 +76,13 @@ function VH_OnParsedMsgChat(nick,data)
 	 return nil
     end
  elseif string.find(data, "^%.p", 1) then
- local nick2protect = data:match("^.p (.+)$")
+ local nick2protect = string.lower(data:match("^.p (.+)$"))
  if not demo_kicked then demo_kicked = {} end
  if not demo_kicked[nick2protect] then demo_kicked[nick2protect] = {} end
   result, iClass = VH:GetUserClass(nick)
   if iClass == 10 then
    demo_kicked[nick2protect][nick]={os.time(), -10}
+   SendMessageToAll(string.format(nick2protect.." получил с барского плеча "..nick.." защиту от 10 киков, демократе негодуэ"), botname)
   end
   return nil
  end
