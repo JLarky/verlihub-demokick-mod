@@ -68,6 +68,8 @@ function VH_OnParsedMsgChat(nick,data)
 	   result, iClass = VH:GetUserClass(nick2kick)
 	   if iClass <6 then
 	    VH:KickUser(botname, nick2kick, "Так решило быдло.")
+	    time_of_kick=os.time();
+	    -- должно быть в месте где кик
 	   end
 	   demo_kicked[nick2kick]={}
 	  end
@@ -88,8 +90,18 @@ function VH_OnParsedMsgChat(nick,data)
    SendMessageToAll(string.format(nick2protect.." получил с барского плеча "..nick.." защиту от 10 киков, демократе негодуэ"), botname)
   end
   return nil
+ end -- of if (kick or unkick)
+
+ local time_of_message=os.time();
+ if not time_of_kick then
+  time_of_kick=1
  end
- return 1
+ if os.difftime(time_of_message, time_of_kick) > 5*60 then 
+      return 1
+     else
+      SendMessageToAll(data,"быдло");
+      return nil
+     end
 end
 
 function SendMessageToUser(data, nick, from)
