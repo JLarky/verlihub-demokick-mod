@@ -24,14 +24,15 @@ function VH_OnParsedMsgChat(nick,data)
   end
   local nick2kick = string.lower(nick2kick)
   result, sIP = VH:GetUserIP(nick2kick)
+  result, kIP = VH:GetUserIP(nick)
     if string.len(sIP)>0 then
 	 --SendMessageToUser(string.format("начинаем кикать..."), nick, botname)
 	 if not demo_kickers then demo_kickers = {};end
-         if not demo_kickers[nick] then demo_kickers[nick] = {0, 0}; end
-	 -- теперь в demo_kickers[nick] у нас написано когда чел в последний раз кикал
+         if not demo_kickers[kIP] then demo_kickers[kIP] = {0, 0}; end
+	 -- теперь в demo_kickers[kIP] у нас написано когда чел в последний раз кикал
 	 local now = os.time()
-	 local diff_time=os.difftime(now, demo_kickers[nick][1])
-	 -- demo_kickers[nick]=now надо делать позже
+	 local diff_time=os.difftime(now, demo_kickers[kIP][1])
+	 -- demo_kickers[kIP]=now надо делать позже
 	 -- теперь в diff_time время с прошлого кика
 	 
 	 if not demo_kicked then demo_kicked = {} end
@@ -39,7 +40,9 @@ function VH_OnParsedMsgChat(nick,data)
 	 if diff_time<vote_delay then
     	  SendMessageToUser(string.format("Кикать слишком часто вредно :) подожди "..(vote_delay-diff_time).." секунд."), nick, botname)
 	 else
-	  demo_kickers[nick]={now, action}
+	  if not (kIP == "217.197.6.21") then
+	    demo_kickers[kIP]={now, action}
+	  end
 	  local signes = demo_kicked[nick2kick]
 	  signes[nick]={now, action}
 	  local i=0
@@ -75,7 +78,7 @@ function VH_OnParsedMsgChat(nick,data)
 	 SendMessageToUser(string.format("Пользователя "..nick2kick.." нет или чё-то глючит"), nick, botname)
 	 return nil
     end
- elseif string.find(data, "^%.p", 1) then
+ elseif string.find(data, "^%.p ", 1) then
  local nick2protect = string.lower(data:match("^.p (.+)$"))
  if not demo_kicked then demo_kicked = {} end
  if not demo_kicked[nick2protect] then demo_kicked[nick2protect] = {} end
