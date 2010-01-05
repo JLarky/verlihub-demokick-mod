@@ -9,6 +9,14 @@ vote_delay=60
 max_votes =5
 vote_time =180
 
+function VH_OnUserLogin(nick)
+  usermenu="Демокик"
+  VH:SendDataToUser("$UserCommand 0 3|", user)
+  VH:SendDataToUser ("$UserCommand 1 3 "..usermenu.."\\kick$<%[mynick]> .kick %[nick]&#124;|", nick)
+  VH:SendDataToUser ("$UserCommand 1 3 "..usermenu.."\\unkick$<%[mynick]> .unkick %[nick]&#124;|", nick)
+
+end
+
 function VH_OnParsedMsgChat(nick,data)
  if string.find(data, "^%.([un]*)kick", 1) then
   local nick2kick = data:match("^.kick (.+)$")
@@ -96,7 +104,7 @@ function VH_OnParsedMsgChat(nick,data)
  if not time_of_kick then
   time_of_kick=1
  end
- if os.difftime(time_of_message, time_of_kick) > 5*60 then 
+ if os.difftime(time_of_message, time_of_kick) > 60 then 
       return 1
      else
       SendMessageToAll(data,"быдло");
