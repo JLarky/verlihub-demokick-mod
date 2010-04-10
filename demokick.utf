@@ -93,7 +93,7 @@ function VH_OnParsedMsgChat(nick,data)
  if not demo_kicked then demo_kicked = {} end
  if not demo_kicked[nick2protect] then demo_kicked[nick2protect] = {} end
   result, iClass = VH:GetUserClass(nick)
-  if iClass == 10 then
+  if iClass > 3 then
    demo_kicked[nick2protect][nick]={os.time(), -10}
    SendMessageToAll(string.format(nick2protect.." получил с барского плеча "..nick.." защиту от 10 киков, демократе негодуэ"), botname)
   end
